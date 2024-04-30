@@ -28,7 +28,7 @@ const App = function AppWrapper() {
 
   return (
     <>
-    <Notification />
+      <Notification />
       {isAuthenticated ? (
         <Container fluid="md">
           <Nav className="justify-content-end pt-3 pb-5">

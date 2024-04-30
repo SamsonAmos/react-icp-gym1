@@ -23,7 +23,7 @@ export async function getAllGyms() {
   } catch (err) {
     // Log the error for debugging
     console.error("Error fetching gyms:", err);
-  
+
     // Handle specific error cases based on their properties
     if (err.name === "AgentHTTPResponseError") {
       const authClient = window.auth.client;
@@ -33,8 +33,29 @@ export async function getAllGyms() {
     // Return an empty array in case of error
     return [];
   }
-  
+
 }
+
+
+
+export async function getGymById(id) {
+  try {
+    return await window.canister.marketplace.getGymById(id);
+  } catch (err) {
+    if (err.name === "AgentHTTPResponseError") {
+      const authClient = window.auth.client;
+      await authClient.logout();
+    }
+    return [];
+  }
+}
+
+
+
+export async function registerForAgym(gymId, enroller) {
+  return window.canister.marketplace.registerForAgym(gymId, enroller);
+}
+
 
 export async function buyProduct(product) {
   const marketplaceCanister = window.canister.marketplace;

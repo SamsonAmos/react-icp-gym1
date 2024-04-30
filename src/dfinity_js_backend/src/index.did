@@ -1,16 +1,11 @@
 service: () -> {
-    acceptLoanRequest: (text) -> (variant {Ok:record {id:text; status:variant {Active:text; Defaulted:text; Completed:text}; duration:nat64; dueDate:nat64; borrower:principal; creationDate:nat64; interestRate:nat64; lender:opt principal; amount:nat64}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
-    accumulateInterest: () -> (vec text);
-    automateLoanRepayment: () -> (vec text);
-    checkForDefault: () -> (vec text);
-    createLoanRequest: (record {duration:nat64; interestRate:nat64; amount:nat64}) -> (variant {Ok:text; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
-    getLoanRequests: () -> (vec record {duration:nat64; interestRate:nat64; amount:nat64}) query;
-    getLoanStatus: (text) -> (variant {Ok:variant {Active:text; Defaulted:text; Completed:text}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}}) query;
-    getLoans: () -> (vec record {id:text; status:variant {Active:text; Defaulted:text; Completed:text}; duration:nat64; dueDate:nat64; borrower:principal; creationDate:nat64; interestRate:nat64; lender:opt principal; amount:nat64}) query;
-    getUserLoanHistory: (principal) -> (vec record {id:text; status:variant {Active:text; Defaulted:text; Completed:text}; duration:nat64; dueDate:nat64; borrower:principal; creationDate:nat64; interestRate:nat64; lender:opt principal; amount:nat64}) query;
-    makeRepayment: (text, nat64) -> (variant {Ok:text; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
-    modifyLoanTerms: (text, record {duration:nat64; interestRate:nat64; amount:nat64}) -> (variant {Ok:record {id:text; status:variant {Active:text; Defaulted:text; Completed:text}; duration:nat64; dueDate:nat64; borrower:principal; creationDate:nat64; interestRate:nat64; lender:opt principal; amount:nat64}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
-    registerUser: (text) -> (variant {Ok:text; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
-    requestLoanExtension: (text, nat64) -> (variant {Ok:record {id:text; status:variant {Active:text; Defaulted:text; Completed:text}; duration:nat64; dueDate:nat64; borrower:principal; creationDate:nat64; interestRate:nat64; lender:opt principal; amount:nat64}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
-    saveFunds: (nat64) -> (variant {Ok:text; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
+    addGym: (record {gymName:text; gymLocation:text; gymImgUrl:text}) -> (variant {Ok:record {id:text; gymName:text; members:vec record {userName:text; userId:text}; owner:principal; gymLocation:text; gymServices:vec record {id:text; serviceName:text; serviceDescription:text}; gymImgUrl:text}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
+    deleteGym: (text) -> (variant {Ok:text; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
+    getAddressFromPrincipal: (principal) -> (text) query;
+    getAllGym: () -> (vec record {id:text; gymName:text; members:vec record {userName:text; userId:text}; owner:principal; gymLocation:text; gymServices:vec record {id:text; serviceName:text; serviceDescription:text}; gymImgUrl:text}) query;
+    getGymById: (text) -> (variant {Ok:record {id:text; gymName:text; members:vec record {userName:text; userId:text}; owner:principal; gymLocation:text; gymServices:vec record {id:text; serviceName:text; serviceDescription:text}; gymImgUrl:text}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}}) query;
+    makePayment: (text, nat64) -> (variant {Ok:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
+    registerForAgym: (text, text) -> (variant {Ok:record {id:text; gymName:text; members:vec record {userName:text; userId:text}; owner:principal; gymLocation:text; gymServices:vec record {id:text; serviceName:text; serviceDescription:text}; gymImgUrl:text}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
+    updateGym: (record {id:text; gymName:text; members:vec record {userName:text; userId:text}; owner:principal; gymLocation:text; gymServices:vec record {id:text; serviceName:text; serviceDescription:text}; gymImgUrl:text}) -> (variant {Ok:record {id:text; gymName:text; members:vec record {userName:text; userId:text}; owner:principal; gymLocation:text; gymServices:vec record {id:text; serviceName:text; serviceDescription:text}; gymImgUrl:text}; Err:variant {PaymentFailed:text; InvalidPayload:text; NotFound:text; PaymentCompleted:text}});
+    verifyPayment: (principal, nat64, nat64, nat64) -> (bool) query;
 }

@@ -5,6 +5,7 @@ import Product from "./Product";
 import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
 
+
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
 import {
   getAllGyms,
@@ -44,22 +45,6 @@ const Products = () => {
     }
   };
 
-  //  function to initiate transaction
-  // const buy = async (id) => {
-  //   try {
-  //     setLoading(true);
-  //     await buyProduct({
-  //       id
-  //     }).then((resp) => {
-  //       getProducts();
-  //       toast(<NotificationSuccess text="Product bought successfully" />);
-  //     });
-  //   } catch (error) {
-  //     toast(<NotificationError text="Failed to purchase product." />);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   useEffect(() => {
     getProducts();
@@ -79,7 +64,7 @@ const Products = () => {
                 product={{
                   ..._product,
                 }}
-                buy={buy}
+                View
               />
             ))}
           </Row>

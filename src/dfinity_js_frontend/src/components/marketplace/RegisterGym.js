@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Button, Modal, Form, FloatingLabel } from "react-bootstrap";
 
-const AddProduct = ({ save }) => {
+const RegisterGym = ({ save }) => {
   const [gymName, setGymName] = useState("");
   const [gymImgUrl, setGymImgUrl] = useState("");
   const [gymLocation, setGymLocation] = useState("");
-  //const [price, setPrice] = useState(0);
-  const isFormFilled = () => gymName && gymImgUrl && gymLocation;
+  const [gymDescription, setGymDescription] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
+
+  const isFormFilled = () => gymName && gymImgUrl && gymLocation && gymDescription && emailAddress;
 
   const [show, setShow] = useState(false);
 
@@ -19,9 +21,9 @@ const AddProduct = ({ save }) => {
       <Button
         onClick={handleShow}
         variant="dark"
-        className="rounded-pill px-0"
-        style={{ width: "38px" }}
-      >
+      // className="rounded-pill px-0"
+      // style={{ width: "38px" }}
+      >Register Gym {" "}
         <i class="bi bi-plus"></i>
       </Button>
       <Modal show={show} onHide={handleClose} centered>
@@ -57,20 +59,50 @@ const AddProduct = ({ save }) => {
                 }}
               />
             </FloatingLabel>
+
+            <FloatingLabel
+              controlId="emailAddress"
+              label="Email Address"
+              className="mb-3"
+            >
+              <Form.Control
+                type="email"
+                placeholder="Email address"
+                onChange={(e) => {
+                  setEmailAddress(e.target.value);
+                }}
+              />
+            </FloatingLabel>
+
             <FloatingLabel
               controlId="gymLocation"
               label="Gym Location"
               className="mb-3"
             >
               <Form.Control
-                as="textarea"
+                type="text"
                 placeholder="Enter gym location"
-                style={{ height: "80px" }}
+                // style={{ height: "80px" }}
                 onChange={(e) => {
                   setGymLocation(e.target.value);
                 }}
               />
             </FloatingLabel>
+
+            <FloatingLabel
+              controlId="gymDescription"
+              label="Gym Description"
+              className="mb-3"
+            >
+              <Form.Control
+                as="textarea"
+                placeholder="Description"
+                onChange={(e) => {
+                  setGymDescription(e.target.value);
+                }}
+              />
+            </FloatingLabel>
+
           </Modal.Body>
         </Form>
         <Modal.Footer>
@@ -85,6 +117,8 @@ const AddProduct = ({ save }) => {
                 gymName,
                 gymImgUrl,
                 gymLocation,
+                gymDescription,
+                emailAddress,
               });
               handleClose();
             }}
@@ -97,8 +131,8 @@ const AddProduct = ({ save }) => {
   );
 };
 
-AddProduct.propTypes = {
+RegisterGym.propTypes = {
   save: PropTypes.func.isRequired,
 };
 
-export default AddProduct;
+export default RegisterGym;

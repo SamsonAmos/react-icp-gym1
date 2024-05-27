@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { Container, Nav } from "react-bootstrap";
-import Products from "./components/marketplace/Products";
+import Gyms from "./components/marketplace/Gyms";
 import "./App.css";
 import Wallet from "./components/Wallet";
 import coverImg from "./assets/img/sandwich.jpg";
@@ -43,7 +43,7 @@ const App = function AppWrapper() {
             </Nav.Item>
           </Nav>
           <main>
-            <Products />
+            <Gyms />
           </main>
         </Container>
       ) : (

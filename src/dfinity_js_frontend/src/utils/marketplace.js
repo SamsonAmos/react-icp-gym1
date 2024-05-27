@@ -1,8 +1,8 @@
 import { Principal } from "@dfinity/principal";
 import { transferICP } from "./ledger";
 
-export async function createGym(gym) {
-  return window.canister.marketplace.addGym(gym);
+export async function createGymProfile(gym) {
+  return window.canister.marketplace.createGymProfile(gym);
 }
 
 export async function getAllGyms() {
@@ -51,9 +51,21 @@ export async function getGymById(id) {
 }
 
 
+export async function getAllEnrollesByGymId(id) {
+  try {
+    return await window.canister.marketplace.getAllEnrollesByGymId(id);
+  } catch (err) {
+    if (err.name === "AgentHTTPResponseError") {
+      const authClient = window.auth.client;
+      await authClient.logout();
+    }
+    return [];
+  }
+}
 
-export async function registerForAgym(gymId, enroller) {
-  return window.canister.marketplace.registerForAgym(gymId, enroller);
+
+export async function gymMembershipRegistration(payload) {
+  return window.canister.marketplace.gymMembershipRegistration(payload);
 }
 
 

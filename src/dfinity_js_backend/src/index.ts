@@ -11,9 +11,12 @@ const GymService = Record({
     serviceDescription: text
 });
 
-const MembersPayload = Record({
+const MembershipPayload = Record({
+    fullName: text,
     userName: text,
-    userId: text
+    emailAddress: text,
+    userId: text,
+    gymId: text
 });
 
 const Gym = Record({
@@ -22,14 +25,18 @@ const Gym = Record({
     gymName: text,
     gymImgUrl: text,
     gymLocation: text,
-    members: Vec(MembersPayload),
+    gymDescription: text,
+    emailAddress: text,
+    members: Vec(MembershipPayload),
     gymServices: Vec(GymService)
 });
 
 const GymPayload = Record({
     gymName: text,
     gymImgUrl: text,
-    gymLocation: text
+    gymLocation: text,
+    gymDescription: text,
+    emailAddress: text
 });
 
 const GymServicePayload = Record({
@@ -39,18 +46,18 @@ const GymServicePayload = Record({
 
 
 
-
-
 const Message = Variant({
     NotFound: text,
     InvalidPayload: text,
     PaymentFailed: text,
-    PaymentCompleted: text
+    PaymentCompleted: text,
+    AlreadyExist: text
 });
 
 
 
 const gymStorage = StableBTreeMap(0, text, Gym);
+
 
 const ORDER_RESERVATION_PERIOD = 120n; // reservation period in seconds
 
@@ -71,7 +78,7 @@ export default Canister({
         return Ok(event.Some);
     }),
 
-    addGym: update([GymPayload], Result(Gym, Message), (payload) => {
+    createGymProfile: update([GymPayload], Result(Gym, Message), (payload) => {
         if (typeof payload !== "object" || Object.keys(payload).length === 0) {
             return Err({ NotFound: "invalid payload" })
         }
@@ -94,19 +101,76 @@ export default Canister({
     }),
 
 
-    registerForAgym: update([text, text], Result(Gym, Message), (gymId, payload) => {
+    // gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
+    //     if (typeof payload !== "object" || Object.keys(payload).length === 0) {
+    //         return Err({ NotFound: "invalid payload" })
+    //     }
+
+    //     const { gymId, fullName, userName, emailAddress, } = payload
+
+    //     const gymOpt = gymStorage.get(gymId);
+
+    //     if ("None" in gymOpt) {
+    //         return Err({ NotFound: `Gym with id=${gymId} not found` });
+    //     }
+    //     // gymOpt.Some.members.forEach((item: { userId: any; }) => {
+    //     //     if (item.userId.toText() === ic.caller().toText()) {
+    //     //         return Err({ AlreadyExist: "user already exist" })
+    //     //     }
+
+    //     gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
+
+
+    //     // });
+
+    //     // gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
+
+    //     gymStorage.insert(gymId, gymOpt.Some);
+
+    //     return Ok(gymOpt.Some);
+    // }),
+
+    gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
+        if (typeof payload !== "object" || Object.keys(payload).length === 0) {
+            return Err({ NotFound: "invalid payload" });
+        }
+
+        const { gymId, fullName, userName, emailAddress } = payload;
         const gymOpt = gymStorage.get(gymId);
 
         if ("None" in gymOpt) {
             return Err({ NotFound: `Gym with id=${gymId} not found` });
         }
 
-        gymOpt.Some.members.push({ userId: uuidv4(), ...(typeof payload === 'object' ? payload : {}) });
+        for (const item of gymOpt.Some.members) {
+            if (item.userId.toText() === ic.caller().toText()) {
+                return Err({ AlreadyExist: "user already exists" });
+            }
+        }
+
+        gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
         gymStorage.insert(gymId, gymOpt.Some);
 
         return Ok(gymOpt.Some);
     }),
 
+
+
+    getAllEnrollesByGymId: query([text], Result(Vec(MembershipPayload), Message), (id) => {
+        const gymOpt = gymStorage.get(id);
+        if ("None" in gymOpt) {
+            return Err({ NotFound: `gym with id=${id} not found` });
+        }
+
+
+        let newMembers: any[] = [];
+        gymOpt.Some.members.forEach((item: { gymId: any }) => {
+            if (item.gymId === id) {
+                newMembers.push(item);
+            }
+        });
+        return Ok(newMembers);
+    }),
 
 
     deleteGym: update([text], Result(text, Message), (id) => {

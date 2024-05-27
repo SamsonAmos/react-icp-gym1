@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import AddProduct from "./AddProduct";
-import Product from "./Product";
+import RegisterGym from "./RegisterGym";
+import Gym from "./Gym";
 import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
 
@@ -9,14 +9,15 @@ import { Row } from "react-bootstrap";
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
 import {
   getAllGyms,
-  createGym, buyProduct
+  createGymProfile
 } from "../../utils/marketplace";
 
-const Products = () => {
+
+const Gyms = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // function to get the list of products
+
   const getProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -28,12 +29,10 @@ const Products = () => {
     }
   });
 
-  const addProduct = async (data) => {
+  const createGym = async (data) => {
     try {
       setLoading(true);
-      // const priceStr = data.price;
-      // data.price = parseInt(priceStr, 10) * 10**8;
-      createGym(data).then((resp) => {
+      createGymProfile(data).then((resp) => {
         getProducts();
       });
       toast(<NotificationSuccess text="Product added successfully." />);
@@ -46,6 +45,8 @@ const Products = () => {
   };
 
 
+
+
   useEffect(() => {
     getProducts();
   }, []);
@@ -55,12 +56,12 @@ const Products = () => {
       {!loading ? (
         <>
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h1 className="fs-4 fw-bold mb-0">Street Food</h1>
-            <AddProduct save={addProduct} />
+            <h1 className="fs-4 fw-bold mb-0">Gym Registry</h1>
+            <RegisterGym save={createGym} />
           </div>
           <Row xs={1} sm={2} lg={3} className="g-3  mb-5 g-xl-4 g-xxl-5">
             {products.map((_product) => (
-              <Product
+              <Gym
                 product={{
                   ..._product,
                 }}
@@ -76,4 +77,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default Gyms;

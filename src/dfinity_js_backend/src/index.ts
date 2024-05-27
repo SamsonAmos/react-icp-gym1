@@ -39,10 +39,10 @@ const GymPayload = Record({
     emailAddress: text
 });
 
-const GymServicePayload = Record({
-    serviceName: text,
-    serviceDescription: text
-});
+// const GymServicePayload = Record({
+//     serviceName: text,
+//     serviceDescription: text
+// });
 
 
 
@@ -71,17 +71,18 @@ export default Canister({
 
 
     getGymById: query([text], Result(Gym, Message), (id) => {
-        const event = gymStorage.get(id);
-        if ("None" in event) {
-            return Err({ NotFound: `product with id=${id} not found` });
+        const gym = gymStorage.get(id);
+        if ("None" in gym) {
+            return Err({ NotFound: `gym with id=${id} not found` });
         }
-        return Ok(event.Some);
+        return Ok(gym.Some);
     }),
 
     createGymProfile: update([GymPayload], Result(Gym, Message), (payload) => {
-        if (typeof payload !== "object" || Object.keys(payload).length === 0) {
-            return Err({ NotFound: "invalid payload" })
+        if (!payload.gymName || !payload.gymImgUrl || !payload.gymLocation || !payload.gymDescription || !payload.emailAddress) {
+            return Err({ InvalidPayload: "Missing required fields" });
         }
+
         const gym = { id: uuidv4(), owner: ic.caller(), members: [], gymServices: [], ...payload };
 
         gymStorage.insert(gym.id, gym);
@@ -89,53 +90,23 @@ export default Canister({
     }),
 
 
-
-
     updateGym: update([Gym], Result(Gym, Message), (payload) => {
-        const productOpt = gymStorage.get(payload.id);
-        if ("None" in productOpt) {
-            return Err({ NotFound: `cannot update the product: product with id=${payload.id} not found` });
+        const gymOpt = gymStorage.get(payload.id);
+        if ("None" in gymOpt) {
+            return Err({ NotFound: `cannot update gym: gym with id=${payload.id} not found` });
         }
-        gymStorage.insert(productOpt.Some.id, payload);
+        gymStorage.insert(gymOpt.Some.id, payload);
         return Ok(payload);
     }),
 
 
-    // gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
-    //     if (typeof payload !== "object" || Object.keys(payload).length === 0) {
-    //         return Err({ NotFound: "invalid payload" })
-    //     }
-
-    //     const { gymId, fullName, userName, emailAddress, } = payload
-
-    //     const gymOpt = gymStorage.get(gymId);
-
-    //     if ("None" in gymOpt) {
-    //         return Err({ NotFound: `Gym with id=${gymId} not found` });
-    //     }
-    //     // gymOpt.Some.members.forEach((item: { userId: any; }) => {
-    //     //     if (item.userId.toText() === ic.caller().toText()) {
-    //     //         return Err({ AlreadyExist: "user already exist" })
-    //     //     }
-
-    //     gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
-
-
-    //     // });
-
-    //     // gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
-
-    //     gymStorage.insert(gymId, gymOpt.Some);
-
-    //     return Ok(gymOpt.Some);
-    // }),
-
     gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
-        if (typeof payload !== "object" || Object.keys(payload).length === 0) {
-            return Err({ NotFound: "invalid payload" });
+        if (!payload.fullName || !payload.userName || !payload.emailAddress) {
+            return Err({ InvalidPayload: "Missing required fields" });
         }
 
         const { gymId, fullName, userName, emailAddress } = payload;
+
         const gymOpt = gymStorage.get(gymId);
 
         if ("None" in gymOpt) {
@@ -149,6 +120,7 @@ export default Canister({
         }
 
         gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
+
         gymStorage.insert(gymId, gymOpt.Some);
 
         return Ok(gymOpt.Some);
@@ -174,11 +146,11 @@ export default Canister({
 
 
     deleteGym: update([text], Result(text, Message), (id) => {
-        const deletedProductOpt = gymStorage.remove(id);
-        if ("None" in deletedProductOpt) {
-            return Err({ NotFound: `cannot delete the product: product with id=${id} not found` });
+        const deletedGymOpt = gymStorage.remove(id);
+        if ("None" in deletedGymOpt) {
+            return Err({ NotFound: `cannot delete the gym: gym with id=${id} not found` });
         }
-        return Ok(deletedProductOpt.Some.id);
+        return Ok(deletedGymOpt.Some.id);
     }),
 
 
@@ -241,8 +213,8 @@ globalThis.crypto = {
     }
 };
 
-function generateCorrelationId(productId: text): nat64 {
-    const correlationId = `${productId}_${ic.caller().toText()}_${ic.time()}`;
+function generateCorrelationId(gymId: text): nat64 {
+    const correlationId = `${gymId}_${ic.caller().toText()}_${ic.time()}`;
     return hash(correlationId);
 };
 

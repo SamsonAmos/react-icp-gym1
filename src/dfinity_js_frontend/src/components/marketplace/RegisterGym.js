@@ -2,17 +2,21 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Button, Modal, Form, FloatingLabel } from "react-bootstrap";
 
-const RegisterGym = ({ save }) => {
-  const [gymName, setGymName] = useState("");
-  const [gymImgUrl, setGymImgUrl] = useState("");
-  const [gymLocation, setGymLocation] = useState("");
-  const [gymDescription, setGymDescription] = useState("");
-  const [emailAddress, setEmailAddress] = useState("");
+const RegisterGym = ({
+  save,
+  gymName,
+  setGymName,
+  gymImgUrl,
+  setGymImgUrl,
+  gymLocation,
+  setGymLocation,
+  gymDescription,
+  setGymDescription,
+  emailAddress,
+  setEmailAddress, }) => {
 
   const isFormFilled = () => gymName && gymImgUrl && gymLocation && gymDescription && emailAddress;
-
   const [show, setShow] = useState(false);
-
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -21,8 +25,6 @@ const RegisterGym = ({ save }) => {
       <Button
         onClick={handleShow}
         variant="dark"
-      // className="rounded-pill px-0"
-      // style={{ width: "38px" }}
       >Register Gym {" "}
         <i class="bi bi-plus"></i>
       </Button>
@@ -40,6 +42,7 @@ const RegisterGym = ({ save }) => {
             >
               <Form.Control
                 type="text"
+                value={gymName}
                 onChange={(e) => {
                   setGymName(e.target.value);
                 }}
@@ -53,6 +56,7 @@ const RegisterGym = ({ save }) => {
             >
               <Form.Control
                 type="text"
+                value={gymImgUrl}
                 placeholder="Image URL"
                 onChange={(e) => {
                   setGymImgUrl(e.target.value);
@@ -67,6 +71,7 @@ const RegisterGym = ({ save }) => {
             >
               <Form.Control
                 type="email"
+                value={emailAddress}
                 placeholder="Email address"
                 onChange={(e) => {
                   setEmailAddress(e.target.value);
@@ -81,8 +86,8 @@ const RegisterGym = ({ save }) => {
             >
               <Form.Control
                 type="text"
+                value={gymLocation}
                 placeholder="Enter gym location"
-                // style={{ height: "80px" }}
                 onChange={(e) => {
                   setGymLocation(e.target.value);
                 }}
@@ -97,6 +102,7 @@ const RegisterGym = ({ save }) => {
               <Form.Control
                 as="textarea"
                 placeholder="Description"
+                value={gymDescription}
                 onChange={(e) => {
                   setGymDescription(e.target.value);
                 }}
@@ -131,8 +137,20 @@ const RegisterGym = ({ save }) => {
   );
 };
 
+
+
 RegisterGym.propTypes = {
   save: PropTypes.func.isRequired,
+  gymName: PropTypes.string.isRequired,
+  setGymName: PropTypes.func.isRequired,
+  gymImgUrl: PropTypes.string.isRequired,
+  setGymImgUrl: PropTypes.func.isRequired,
+  gymLocation: PropTypes.string.isRequired,
+  setGymLocation: PropTypes.func.isRequired,
+  gymDescription: PropTypes.string.isRequired,
+  setGymDescription: PropTypes.func.isRequired,
+  emailAddress: PropTypes.string.isRequired,
+  setEmailAddress: PropTypes.func.isRequired,
 };
 
 export default RegisterGym;

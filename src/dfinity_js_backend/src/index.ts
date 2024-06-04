@@ -39,11 +39,6 @@ const GymPayload = Record({
     emailAddress: text
 });
 
-// const GymServicePayload = Record({
-//     serviceName: text,
-//     serviceDescription: text
-// });
-
 
 
 const Message = Variant({
@@ -90,13 +85,25 @@ export default Canister({
     }),
 
 
-    updateGym: update([Gym], Result(Gym, Message), (payload) => {
-        const gymOpt = gymStorage.get(payload.id);
+    updateGymById: update([text, GymPayload], Result(Gym, Message), (id, payload) => {
+        const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
-            return Err({ NotFound: `cannot update gym: gym with id=${payload.id} not found` });
+            return Err({ NotFound: `cannot update gym: gym with id=${id} not found` });
         }
-        gymStorage.insert(gymOpt.Some.id, payload);
-        return Ok(payload);
+
+        const existingGym = gymOpt.Some;
+
+        const updatedGym = {
+            ...existingGym,
+            gymName: payload.gymName,
+            gymImgUrl: payload.gymImgUrl,
+            gymLocation: payload.gymLocation,
+            gymDescription: payload.gymDescription,
+            emailAddress: payload.emailAddress,
+        };
+
+        gymStorage.insert(id, updatedGym);
+        return Ok(updatedGym);
     }),
 
 

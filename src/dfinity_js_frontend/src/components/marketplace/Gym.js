@@ -6,9 +6,10 @@ import { Principal } from "@dfinity/principal";
 import GymInfoModal from "./GymInfoModal";
 import { getGymById, gymMembershipRegistration, getAllEnrollesByGymId } from "../../utils/marketplace";
 import GymEnrollModal from "./GymEnrollModal";
+import { Modal, Form, FloatingLabel } from "react-bootstrap";
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
 
-const Gym = ({ product }) => {
+const Gym = ({ product, updateGymById, gymName1, setGymName, gymImgUrl1, setGymImgUrl, fetchGymDetailsById }) => {
   const { id, gymImgUrl, gymLocation, gymName } = product;
   const [gymDetailsModal, setGymDetailsModal] = useState(false);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
@@ -35,23 +36,6 @@ const Gym = ({ product }) => {
   });
 
 
-
-  // const enroll = async (data) => {
-  //   try {
-  //     // setLoading(true);
-  //     gymMembershipRegistration(data).then((resp) => {
-  //       console.log(data)
-  //       getMembers(id)
-  //       toast(<NotificationSuccess text="Product added successfully." />);
-  //     });
-  //   } catch (error) {
-  //     console.log("Failed to create a product.", error);
-  //     toast(<NotificationError text="Failed to create a product." />);
-  //   } finally {
-  //     // setLoading(false);
-
-  //   }
-  // };
 
   const enroll = async (data) => {
     try {
@@ -121,6 +105,14 @@ const Gym = ({ product }) => {
               className="w-100 py-3"
             >
               View
+            </Button>
+
+            <Button
+              variant="outline-dark"
+              onClick={() => fetchGymDetailsById(id)}
+              className="w-100 py-3"
+            >
+              Update
             </Button>
 
           </Card.Body>

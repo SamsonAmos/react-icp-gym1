@@ -5,20 +5,31 @@ import Gym from "./Gym";
 import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
-import { getAllGyms, createGymProfile } from "../../utils/marketplace";
+import { getAllGyms, createGymProfile, getGymById, updateGymById } from "../../utils/marketplace";
 
 
 const Gyms = () => {
-  const [gymName, setGymName] = useState("");
+  const [gymName, setGymName] = useState("Chigozie");
   const [gymImgUrl, setGymImgUrl] = useState("");
   const [gymLocation, setGymLocation] = useState("");
   const [gymDescription, setGymDescription] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
+  const [id, setId] = useState("")
+  const [text, setText] = useState("register")
+
+
+  const [gymDetails, setGymDetails] = useState({});
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
+
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
   const isFormFilled = () => gymName && gymImgUrl && gymLocation && gymDescription && emailAddress;
+
 
   const getProducts = useCallback(async () => {
     try {
@@ -29,7 +40,7 @@ const Gyms = () => {
     } finally {
       setLoading(false);
     }
-  });
+  }, []);
 
   const createGym = async (data) => {
     try {
@@ -49,10 +60,45 @@ const Gyms = () => {
 
 
 
+  const fetchGymDetailsById = useCallback(async (id) => {
+    try {
+      const details = await getGymById(id);
+      if (details.Ok) {
+        setGymDetails(details.Ok);
+        setGymName(details.Ok.gymName);
+        setGymImgUrl(details.Ok.gymImgUrl);
+        setGymLocation(details.Ok.gymLocation);
+        setGymDescription(details.Ok.gymDescription);
+        setEmailAddress(details.Ok.emailAddress);
+        setId(details.Ok.id);
+        setText("update");
+        handleShow();
+      }
+    } catch (error) {
+      console.log({ error });
+    }
+  }, []);
+
+
+
+  const updateGym = async (id, data) => {
+    try {
+      setLoading(true);
+      await updateGymById(id, data);
+      await getProducts();
+      toast(<NotificationSuccess text="Gym updated successfully." />);
+    } catch (error) {
+      console.log({ error });
+      toast(<NotificationError text="Failed to update gym." />);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     getProducts();
-  }, []);
+  }, [getProducts]);
+
 
   return (
     <>
@@ -71,7 +117,15 @@ const Gyms = () => {
               gymDescription={gymDescription}
               setGymDescription={setGymDescription}
               emailAddress={emailAddress}
-              setEmailAddress={setEmailAddress} />
+              setEmailAddress={setEmailAddress}
+              show={show}
+              handleClose={handleClose}
+              handleShow={handleShow}
+              isFormFilled={isFormFilled}
+              updateGym={updateGym}
+              id={id}
+              text={text}
+            />
           </div>
           <Row xs={1} sm={2} lg={3} className="g-3  mb-5 g-xl-4 g-xxl-5">
             {products.map((_product) => (
@@ -79,6 +133,12 @@ const Gyms = () => {
                 product={{
                   ..._product,
                 }}
+
+                gymName1={gymName}
+                setGymName={setGymName}
+                gymImgUrl1={gymImgUrl}
+                setGymImgUrl={setGymImgUrl}
+                fetchGymDetailsById={fetchGymDetailsById}
                 View
               />
             ))}

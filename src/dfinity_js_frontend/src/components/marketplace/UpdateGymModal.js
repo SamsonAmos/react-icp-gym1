@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Button, Modal, Form, FloatingLabel } from "react-bootstrap";
 
-const RegisterGym = ({
+const UpdateGymModal = ({
   save,
   gymName,
   setGymName,
@@ -13,20 +13,15 @@ const RegisterGym = ({
   gymDescription,
   setGymDescription,
   emailAddress,
-  setEmailAddress, show, handleClose, handleShow, isFormFilled, text, id, updateGym }) => {
+  setEmailAddress, show, handleClose, handleShow, isFormFilled }) => {
 
 
   return (
     <>
-      <Button
-        onClick={handleShow}
-        variant="dark"
-      >Register Gym {" "}
-        <i class="bi bi-plus"></i>
-      </Button>
+
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{text === "update" ? `Update:  ${id}` : "Create Gym"}</Modal.Title>
+          <Modal.Title>Update Gym: { }</Modal.Title>
         </Modal.Header>
         <Form>
 
@@ -111,44 +106,23 @@ const RegisterGym = ({
           <Button variant="outline-secondary" onClick={handleClose}>
             Close
           </Button>
-
-
-          {text !== "update" ?
-            <Button
-              variant="dark"
-              disabled={!isFormFilled()}
-              onClick={() => {
-                save({
-                  gymName,
-                  gymImgUrl,
-                  gymLocation,
-                  gymDescription,
-                  emailAddress,
-                });
-                handleClose();
-              }}
-            >
-              Create Gym
-            </Button>
-            :
-
-            <Button
-              variant="dark"
-              disabled={!isFormFilled()}
-              onClick={() => {
-                updateGym(id, {
-                  gymName,
-                  gymImgUrl,
-                  gymLocation,
-                  gymDescription,
-                  emailAddress,
-                });
-                handleClose();
-              }}
-            >
-              Update
-            </Button>
-          }
+          <Button
+            variant="dark"
+            disabled={!isFormFilled()}
+            onClick={() => {
+              save({
+                gymName,
+                gymImgUrl,
+                gymLocation,
+                gymDescription,
+                emailAddress,
+                id
+              });
+              handleClose();
+            }}
+          >
+            Update Gym
+          </Button>
         </Modal.Footer>
       </Modal>
     </>
@@ -157,8 +131,8 @@ const RegisterGym = ({
 
 
 
-RegisterGym.propTypes = {
-  updateGym: PropTypes.func.isRequired,
+UpdateGymModal.propTypes = {
+  save: PropTypes.func.isRequired,
   gymName: PropTypes.string.isRequired,
   setGymName: PropTypes.func.isRequired,
   gymImgUrl: PropTypes.string.isRequired,
@@ -171,4 +145,4 @@ RegisterGym.propTypes = {
   setEmailAddress: PropTypes.func.isRequired,
 };
 
-export default RegisterGym;
+export default UpdateGymModal;

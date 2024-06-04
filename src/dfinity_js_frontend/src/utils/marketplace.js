@@ -6,15 +6,6 @@ export async function createGymProfile(gym) {
 }
 
 export async function getAllGyms() {
-  // try {
-  //   return await window.canister.marketplace.getAllGyms();
-  // } catch (err) {
-  //   if (err.name === "AgentHTTPResponseError") {
-  //     const authClient = window.auth.client;
-  //     await authClient.logout();
-  //   }
-  //   return [];
-  // }
 
   try {
     const result = await window.canister.marketplace.getAllGym();
@@ -66,6 +57,10 @@ export async function getAllEnrollesByGymId(id) {
 
 export async function gymMembershipRegistration(payload) {
   return window.canister.marketplace.gymMembershipRegistration(payload);
+}
+
+export async function updateGymById(id, payload) {
+  return window.canister.marketplace.updateGymById(id, payload);
 }
 
 

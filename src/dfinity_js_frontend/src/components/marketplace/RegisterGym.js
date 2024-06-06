@@ -24,9 +24,9 @@ const RegisterGym = ({
       >Register Gym {" "}
         <i class="bi bi-plus"></i>
       </Button>
-      <Modal show={show} onHide={handleClose} centered>
+      <Modal show={show} onHide={handleClose} centered backdrop="static">
         <Modal.Header closeButton>
-          <Modal.Title>{text === "update" ? `Update:  ${id}` : "Create Gym"}</Modal.Title>
+          <Modal.Title style={{ fontSize: 12 }}>{text === "update" ? `Update:  ${id}` : "Create Gym"}</Modal.Title>
         </Modal.Header>
         <Form>
 

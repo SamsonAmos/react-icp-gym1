@@ -3,7 +3,7 @@ import { Container, Nav } from "react-bootstrap";
 import Gyms from "./components/marketplace/Gyms";
 import "./App.css";
 import Wallet from "./components/Wallet";
-import coverImg from "./assets/img/sandwich.jpg";
+import coverImg from "./assets/img/gym_image.jpg";
 import { login, logout as destroy } from "./utils/auth";
 import { balance as principalBalance } from "./utils/ledger"
 import Cover from "./components/utils/Cover";
@@ -47,7 +47,7 @@ const App = function AppWrapper() {
           </main>
         </Container>
       ) : (
-        <Cover name="Street Food" login={login} coverImg={coverImg} />
+        <Cover name="GymFusion" login={login} coverImg={coverImg} />
       )}
     </>
   );

@@ -9,7 +9,7 @@ import { getAllGyms, createGymProfile, getGymById, updateGymById } from "../../u
 
 
 const Gyms = () => {
-  const [gymName, setGymName] = useState("Chigozie");
+  const [gymName, setGymName] = useState("");
   const [gymImgUrl, setGymImgUrl] = useState("");
   const [gymLocation, setGymLocation] = useState("");
   const [gymDescription, setGymDescription] = useState("");
@@ -48,6 +48,12 @@ const Gyms = () => {
       createGymProfile(data).then((resp) => {
         getProducts();
         toast(<NotificationSuccess text="Gym created successfully." />);
+        setGymDetails("");
+        setGymName("");
+        setGymImgUrl("");
+        setGymLocation("");
+        setGymDescription("");
+        setEmailAddress("");
       });
 
     } catch (error) {
@@ -92,6 +98,13 @@ const Gyms = () => {
       toast(<NotificationError text="Failed to update gym." />);
     } finally {
       setLoading(false);
+      setGymDetails("");
+      setGymName("");
+      setGymImgUrl("");
+      setGymLocation("");
+      setGymDescription("");
+      setEmailAddress("");
+      setText("register")
     }
   };
 
@@ -105,7 +118,7 @@ const Gyms = () => {
       {!loading ? (
         <>
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h1 className="fs-4 fw-bold mb-0">Gym Registry</h1>
+            <h1 className="fs-4 fw-bold mb-0">GymFusion</h1>
             <RegisterGym
               save={createGym}
               gymName={gymName}

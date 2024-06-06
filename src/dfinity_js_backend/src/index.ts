@@ -46,7 +46,8 @@ const Message = Variant({
     InvalidPayload: text,
     PaymentFailed: text,
     PaymentCompleted: text,
-    AlreadyExist: text
+    AlreadyExist: text,
+    NotAuthorized: text
 });
 
 
@@ -89,6 +90,10 @@ export default Canister({
         const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
             return Err({ NotFound: `cannot update gym: gym with id=${id} not found` });
+        }
+
+        if (gymOpt.Some.owner.toText() !== ic.caller().toText()) {
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${id} ` });
         }
 
         const existingGym = gymOpt.Some;
@@ -141,7 +146,6 @@ export default Canister({
             return Err({ NotFound: `gym with id=${id} not found` });
         }
 
-
         let newMembers: any[] = [];
         gymOpt.Some.members.forEach((item: { gymId: any }) => {
             if (item.gymId === id) {
@@ -157,6 +161,11 @@ export default Canister({
         if ("None" in deletedGymOpt) {
             return Err({ NotFound: `cannot delete the gym: gym with id=${id} not found` });
         }
+
+        if (deletedGymOpt.Some.owner.toText() !== ic.caller().toText()) {
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${id} ` });
+        }
+
         return Ok(deletedGymOpt.Some.id);
     }),
 

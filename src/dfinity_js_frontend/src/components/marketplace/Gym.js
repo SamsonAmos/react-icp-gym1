@@ -1,12 +1,10 @@
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
-import { Card, Button, Col, Badge, Stack } from "react-bootstrap";
-import { Principal } from "@dfinity/principal";
+import { Card, Button, Col } from "react-bootstrap";
+// import { Principal } from "@dfinity/principal";
 import GymInfoModal from "./GymInfoModal";
 import { getGymById, gymMembershipRegistration, getAllEnrollesByGymId } from "../../utils/marketplace";
-import GymEnrollModal from "./GymEnrollModal";
-import { Modal, Form, FloatingLabel } from "react-bootstrap";
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
 
 const Gym = ({ product, updateGymById, gymName1, setGymName, gymImgUrl1, setGymImgUrl, fetchGymDetailsById }) => {
@@ -25,13 +23,9 @@ const Gym = ({ product, updateGymById, gymName1, setGymName, gymImgUrl1, setGymI
       setLoading(true);
       setGymDetails(await getGymById(id));
       setGymDetailsModal(true);
-      // getMembers(id)
-      console.log('products1', gymDetails)
     } catch (error) {
       console.log({ error });
     } finally {
-      console.log('products2', gymDetails)
-
     }
   });
 

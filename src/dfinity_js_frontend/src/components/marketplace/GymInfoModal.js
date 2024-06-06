@@ -3,7 +3,7 @@ import { Modal, Card, Button } from "react-bootstrap";
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import GymEnrollModal from "./GymEnrollModal";
-import { getAllEnrollesByGymId } from "../../utils/marketplace";
+
 
 const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enroll, getMembers, gymMembers }) => {
     const [key, setKey] = useState('details');
@@ -16,15 +16,23 @@ const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enrol
     }, [gymDetails?.Ok?.id, getMembers]);
 
 
-    console.log('gymMembers3', gymMembers)
-
     return (
         <>
             {Object.keys(gymDetails).length !== 0 &&
                 <>
-                    <Modal show={gymDetailsModal} onHide={closeGymDetailsModal} centered>
+                    <Modal show={gymDetailsModal} onHide={closeGymDetailsModal} centered backdrop="static">
                         <Modal.Header closeButton>
                             <Modal.Title style={{ fontSize: 12 }}>Gym's Profile: {gymDetails.Ok.id}</Modal.Title>
+
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                style={{ marginLeft: 'auto' }}
+                            // onClick={handleDelete}
+                            >
+                                Delete
+                            </Button>
+
                         </Modal.Header>
                         <Modal.Body>
                             <Card className=" h-100">
@@ -45,22 +53,7 @@ const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enrol
                                             <Card.Text ><b>Location:</b> {" "}{gymDetails.Ok.gymLocation}</Card.Text>
                                             <Card.Text ><b>Description:</b> {" "}{gymDetails.Ok.gymDescription}</Card.Text>
 
-                                            {/* <Button
-                                                variant="primary"
-                                                // disabled={!isFormFilled()}
-                                                onClick={() => getMembers(gymDetails.Ok.id)}
-                                            >
-                                                View Members
-                                            </Button> */}
-
                                             <p className="text-center">Gym Members</p>
-
-                                            {/* {gymMembers.map((member) => (
-                                                <React.Fragment key={member.userId}>
-                                                    <Card.Text className="text-capitalize">Fullname: {member.fullName}</Card.Text>
-                                                    <Card.Text>USER_ID: {member.userId}</Card.Text>
-                                                </React.Fragment>
-                                            ))} */}
 
                                             <ol>
                                                 {gymMembers.map((member) => (

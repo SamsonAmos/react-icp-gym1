@@ -5,7 +5,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import GymEnrollModal from "./GymEnrollModal";
 
 
-const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enroll, getMembers, gymMembers }) => {
+const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enroll, getMembers, gymMembers, deleteGym }) => {
     const [key, setKey] = useState('details');
 
 
@@ -28,7 +28,10 @@ const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enrol
                                 variant="danger"
                                 size="sm"
                                 style={{ marginLeft: 'auto' }}
-                            // onClick={handleDelete}
+                                onClick={() => {
+                                    deleteGym(gymDetails.Ok.id);
+                                    closeGymDetailsModal()
+                                }}
                             >
                                 Delete
                             </Button>

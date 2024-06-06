@@ -5,7 +5,7 @@ import Gym from "./Gym";
 import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
-import { getAllGyms, createGymProfile, getGymById, updateGymById } from "../../utils/marketplace";
+import { getAllGyms, createGymProfile, getGymById, updateGymById, deleteGymById } from "../../utils/marketplace";
 
 
 const Gyms = () => {
@@ -108,6 +108,22 @@ const Gyms = () => {
     }
   };
 
+
+  const deleteGym = async (id) => {
+    try {
+      setLoading(true);
+      await deleteGymById(id);
+      await getProducts();
+      toast(<NotificationSuccess text="Gym deleted successfully." />);
+    } catch (error) {
+      console.log({ error });
+      toast(<NotificationError text="Failed to delete gym." />);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     getProducts();
   }, [getProducts]);
@@ -152,6 +168,7 @@ const Gyms = () => {
                 gymImgUrl1={gymImgUrl}
                 setGymImgUrl={setGymImgUrl}
                 fetchGymDetailsById={fetchGymDetailsById}
+                deleteGym={deleteGym}
                 View
               />
             ))}

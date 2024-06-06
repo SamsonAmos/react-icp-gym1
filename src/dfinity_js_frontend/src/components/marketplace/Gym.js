@@ -7,7 +7,7 @@ import GymInfoModal from "./GymInfoModal";
 import { getGymById, gymMembershipRegistration, getAllEnrollesByGymId } from "../../utils/marketplace";
 import { NotificationSuccess, NotificationError } from "../utils/Notifications";
 
-const Gym = ({ product, updateGymById, gymName1, setGymName, gymImgUrl1, setGymImgUrl, fetchGymDetailsById }) => {
+const Gym = ({ product, deleteGym }) => {
   const { id, gymImgUrl, gymLocation, gymName } = product;
   const [gymDetailsModal, setGymDetailsModal] = useState(false);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
@@ -84,7 +84,7 @@ const Gym = ({ product, updateGymById, gymName1, setGymName, gymImgUrl1, setGymI
   return (
     <>
       <GymInfoModal closeGymDetailsModal={closeGymDetailsModal} gymDetailsModal={gymDetailsModal}
-        gymDetails={gymDetails} getProductById={getProductById} enroll={enroll} getMembers={getMembers} gymMembers={gymMembers} />
+        gymDetails={gymDetails} getProductById={getProductById} enroll={enroll} getMembers={getMembers} gymMembers={gymMembers} deleteGym={deleteGym} />
       <Col key={id}>
         <Card className=" h-100">
           <div className=" ratio ratio-4x3">

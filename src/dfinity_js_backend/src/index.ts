@@ -156,7 +156,7 @@ export default Canister({
     }),
 
 
-    deleteGym: update([text], Result(text, Message), (id) => {
+    deleteGymById: update([text], Result(text, Message), (id) => {
         const deletedGymOpt = gymStorage.remove(id);
         if ("None" in deletedGymOpt) {
             return Err({ NotFound: `cannot delete the gym: gym with id=${id} not found` });

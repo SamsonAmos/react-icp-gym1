@@ -63,6 +63,10 @@ export async function updateGymById(id, payload) {
   return window.canister.marketplace.updateGymById(id, payload);
 }
 
+export async function deleteGymById(id) {
+  return window.canister.marketplace.deleteGymById(id);
+}
+
 
 export async function buyProduct(product) {
   const marketplaceCanister = window.canister.marketplace;

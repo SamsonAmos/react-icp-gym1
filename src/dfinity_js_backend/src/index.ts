@@ -3,7 +3,6 @@ import { Ledger, binaryAddressFromAddress, binaryAddressFromPrincipal, hexAddres
 import { hashCode } from "hashcode";
 import { v4 as uuidv4 } from "uuid";
 
-
 // Define the structure of the GymService payload
 const GymServicePayload = Record({
     gymId: text,
@@ -22,8 +21,6 @@ const MembershipPayload = Record({
     gymId: text
 });
 
-
-
 // Define the structure of the Gym object
 const Gym = Record({
     id: text,
@@ -37,8 +34,6 @@ const Gym = Record({
     gymServices: Vec(GymServicePayload)
 });
 
-
-
 // Define the structure of the Gym payload for creation/updating
 const GymPayload = Record({
     gymName: text,
@@ -48,8 +43,6 @@ const GymPayload = Record({
     emailAddress: text
 });
 
-
-
 // Define the possible message variants for errors and notifications
 const Message = Variant({
     NotFound: text,
@@ -57,13 +50,11 @@ const Message = Variant({
     PaymentFailed: text,
     PaymentCompleted: text,
     AlreadyExist: text,
-    NotAuthorized: text
+    NotAuthorized: text,
+    Success: text
 });
 
-
-
 const gymStorage = StableBTreeMap(0, text, Gym);
-
 
 const ORDER_RESERVATION_PERIOD = 120n; // reservation period in seconds
 
@@ -76,7 +67,6 @@ export default Canister({
         return gymStorage.values();
     }),
 
-
     // Query to get a specific gym by ID
     getGymById: query([text], Result(Gym, Message), (id) => {
         const gym = gymStorage.get(id);
@@ -86,20 +76,17 @@ export default Canister({
         return Ok(gym.Some);
     }),
 
-
     // Update method to create a new gym profile
     createGymProfile: update([GymPayload], Result(Gym, Message), (payload) => {
-        if (!payload.gymName || !payload.gymImgUrl || !payload.gymLocation || !payload.gymDescription || !payload.emailAddress) {
-            return Err({ InvalidPayload: "Missing required fields" });
+        const missingFields = validateGymPayload(payload);
+        if (missingFields.length > 0) {
+            return Err({ InvalidPayload: `Missing required fields: ${missingFields.join(', ')}` });
         }
 
         const gym = { id: uuidv4(), owner: ic.caller(), members: [], gymServices: [], ...payload };
-
         gymStorage.insert(gym.id, gym);
         return Ok(gym);
     }),
-
-
 
     // Update method to update an existing gym by ID
     updateGymById: update([text, GymPayload], Result(Gym, Message), (id, payload) => {
@@ -109,54 +96,36 @@ export default Canister({
         }
 
         if (gymOpt.Some.owner.toText() !== ic.caller().toText()) {
-            return Err({ NotAuthorized: `you are not the owner of this gym with id=${id} ` });
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${id}` });
         }
 
-        const existingGym = gymOpt.Some;
-
-        const updatedGym = {
-            ...existingGym,
-            gymName: payload.gymName,
-            gymImgUrl: payload.gymImgUrl,
-            gymLocation: payload.gymLocation,
-            gymDescription: payload.gymDescription,
-            emailAddress: payload.emailAddress,
-        };
-
+        const updatedGym = { ...gymOpt.Some, ...payload };
         gymStorage.insert(id, updatedGym);
         return Ok(updatedGym);
     }),
 
-
-
     // Update method to register a new gym member
     gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
-        if (!payload.fullName || !payload.userName || !payload.emailAddress) {
-            return Err({ InvalidPayload: "Missing required fields" });
+        const missingFields = validateMembershipPayload(payload);
+        if (missingFields.length > 0) {
+            return Err({ InvalidPayload: `Missing required fields: ${missingFields.join(', ')}` });
         }
 
-        const { gymId, fullName, userName, emailAddress } = payload;
-
-        const gymOpt = gymStorage.get(gymId);
-
+        const gymOpt = gymStorage.get(payload.gymId);
         if ("None" in gymOpt) {
-            return Err({ NotFound: `Gym with id=${gymId} not found` });
+            return Err({ NotFound: `Gym with id=${payload.gymId} not found` });
         }
 
         for (const item of gymOpt.Some.members) {
-            if (item.userId.toText() === ic.caller().toText()) {
-                return Err({ AlreadyExist: "user already exists" });
+            if (item.userId === ic.caller().toText()) {
+                return Err({ AlreadyExist: "User already exists" });
             }
         }
 
-        gymOpt.Some.members.push({ userId: ic.caller().toText(), userName, gymId, fullName, emailAddress });
-
-        gymStorage.insert(gymId, gymOpt.Some);
-
+        gymOpt.Some.members.push({ userId: ic.caller().toText(), ...payload });
+        gymStorage.insert(payload.gymId, gymOpt.Some);
         return Ok(gymOpt.Some);
     }),
-
-
 
     // Query to get all members enrolled in a specific gym by ID
     getAllEnrollesByGymId: query([text], Result(Vec(MembershipPayload), Message), (id) => {
@@ -165,40 +134,29 @@ export default Canister({
             return Err({ NotFound: `gym with id=${id} not found` });
         }
 
-        let newMembers: any[] = [];
-        gymOpt.Some.members.forEach((item: { gymId: any }) => {
-            if (item.gymId === id) {
-                newMembers.push(item);
-            }
-        });
-        return Ok(newMembers);
+        return Ok(gymOpt.Some.members);
     }),
-
-
 
     // Update method to add a new service to a gym
     addGymService: update([GymServicePayload], Result(Gym, Message), (payload) => {
-        if (!payload.serviceName || !payload.serviceDescription || !payload.operatingDaysStart || !payload.operatingDaysEnd) {
-            return Err({ InvalidPayload: "Missing required fields" });
+        const missingFields = validateGymServicePayload(payload);
+        if (missingFields.length > 0) {
+            return Err({ InvalidPayload: `Missing required fields: ${missingFields.join(', ')}` });
         }
 
-        const { gymId, serviceName, serviceDescription, operatingDaysStart, operatingDaysEnd } = payload;
-        const gymOpt = gymStorage.get(gymId);
-
+        const gymOpt = gymStorage.get(payload.gymId);
         if ("None" in gymOpt) {
-            return Err({ NotFound: `Gym with id=${gymId} not found` });
+            return Err({ NotFound: `Gym with id=${payload.gymId} not found` });
         }
 
         if (gymOpt.Some.owner.toText() !== ic.caller().toText()) {
-            return Err({ NotAuthorized: `you are not the owner of this gym with id=${gymId} ` });
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${payload.gymId}` });
         }
 
-        gymOpt.Some.gymServices.push({ gymId, serviceName, serviceDescription, operatingDaysStart, operatingDaysEnd });
-        gymStorage.insert(gymId, gymOpt.Some);
+        gymOpt.Some.gymServices.push(payload);
+        gymStorage.insert(payload.gymId, gymOpt.Some);
         return Ok(gymOpt.Some);
     }),
-
-
 
     // Query to get all services of a specific gym by ID
     getAllServicesById: query([text], Result(Vec(GymServicePayload), Message), (id) => {
@@ -207,16 +165,50 @@ export default Canister({
             return Err({ NotFound: `gym with id=${id} not found` });
         }
 
-        let services: any[] = [];
-        gymOpt.Some.gymServices.forEach((service: { gymId: any }) => {
-            if (service.gymId === id) {
-                services.push(service);
-            }
-        });
-        return Ok(services);
+        return Ok(gymOpt.Some.gymServices);
     }),
 
+    // Update method to update a service by gym ID and service name
+    updateGymService: update([text, GymServicePayload], Result(Gym, Message), (gymId, payload) => {
+        const gymOpt = gymStorage.get(gymId);
+        if ("None" in gymOpt) {
+            return Err({ NotFound: `Gym with id=${gymId} not found` });
+        }
 
+        if (gymOpt.Some.owner.toText() !== ic.caller().toText()) {
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${gymId}` });
+        }
+
+        const serviceIndex = gymOpt.Some.gymServices.findIndex(service => service.serviceName === payload.serviceName);
+        if (serviceIndex === -1) {
+            return Err({ NotFound: `Service with name=${payload.serviceName} not found` });
+        }
+
+        gymOpt.Some.gymServices[serviceIndex] = payload;
+        gymStorage.insert(gymId, gymOpt.Some);
+        return Ok(gymOpt.Some);
+    }),
+
+    // Update method to delete a gym member by user ID and gym ID
+    deleteGymMember: update([text, text], Result(Gym, Message), (gymId, userId) => {
+        const gymOpt = gymStorage.get(gymId);
+        if ("None" in gymOpt) {
+            return Err({ NotFound: `Gym with id=${gymId} not found` });
+        }
+
+        if (gymOpt.Some.owner.toText() !== ic.caller().toText()) {
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${gymId}` });
+        }
+
+        const memberIndex = gymOpt.Some.members.findIndex(member => member.userId === userId);
+        if (memberIndex === -1) {
+            return Err({ NotFound: `Member with id=${userId} not found` });
+        }
+
+        gymOpt.Some.members.splice(memberIndex, 1);
+        gymStorage.insert(gymId, gymOpt.Some);
+        return Ok(gymOpt.Some);
+    }),
 
     // Update method to delete a gym by ID
     deleteGymById: update([text], Result(text, Message), (id) => {
@@ -226,12 +218,11 @@ export default Canister({
         }
 
         if (deletedGymOpt.Some.owner.toText() !== ic.caller().toText()) {
-            return Err({ NotAuthorized: `you are not the owner of this gym with id=${id} ` });
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${id}` });
         }
 
         return Ok(deletedGymOpt.Some.id);
     }),
-
 
     verifyPayment: query([Principal, nat64, nat64, nat64], bool, async (receiver, amount, block, memo) => {
         return await verifyPaymentInternal(receiver, amount, block, memo);
@@ -270,13 +261,39 @@ export default Canister({
         return Ok({ PaymentCompleted: "payment completed" });
     })
 
-})
+});
+
+function validateGymPayload(payload) {
+    const missingFields = [];
+    if (!payload.gymName) missingFields.push("gymName");
+    if (!payload.gymImgUrl) missingFields.push("gymImgUrl");
+    if (!payload.gymLocation) missingFields.push("gymLocation");
+    if (!payload.gymDescription) missingFields.push("gymDescription");
+    if (!payload.emailAddress) missingFields.push("emailAddress");
+    return missingFields;
+}
+
+function validateMembershipPayload(payload) {
+    const missingFields = [];
+    if (!payload.fullName) missingFields.push("fullName");
+    if (!payload.userName) missingFields.push("userName");
+    if (!payload.emailAddress) missingFields.push("emailAddress");
+    if (!payload.gymId) missingFields.push("gymId");
+    return missingFields;
+}
+
+function validateGymServicePayload(payload) {
+    const missingFields = [];
+    if (!payload.serviceName) missingFields.push("serviceName");
+    if (!payload.serviceDescription) missingFields.push("serviceDescription");
+    if (!payload.operatingDaysStart) missingFields.push("operatingDaysStart");
+    if (!payload.operatingDaysEnd) missingFields.push("operatingDaysEnd");
+    return missingFields;
+}
 
 function hash(input: any): nat64 {
     return BigInt(Math.abs(hashCode().value(input)));
-};
-
-
+}
 
 // a workaround to make uuid package work with Azle
 globalThis.crypto = {
@@ -295,14 +312,14 @@ globalThis.crypto = {
 function generateCorrelationId(gymId: text): nat64 {
     const correlationId = `${gymId}_${ic.caller().toText()}_${ic.time()}`;
     return hash(correlationId);
-};
+}
 
 function discardByTimeout(memo: nat64, delay: Duration) {
     ic.setTimer(delay, () => {
         const order = gymStorage.remove(memo);
         console.log(`Order discarded ${order}`);
     });
-};
+}
 
 async function verifyPaymentInternal(receiver: Principal, amount: nat64, block: nat64, memo: nat64): Promise<bool> {
     const blockData = await ic.call(icpCanister.query_blocks, { args: [{ start: block, length: 1n }] });
@@ -319,4 +336,4 @@ async function verifyPaymentInternal(receiver: Principal, amount: nat64, block: 
             amount === operation.Transfer?.amount.e8s;
     });
     return tx ? true : false;
-};
+}

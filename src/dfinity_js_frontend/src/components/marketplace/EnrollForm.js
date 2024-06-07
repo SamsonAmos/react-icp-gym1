@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Button, Modal, Form, FloatingLabel } from "react-bootstrap";
 
-const GymEnrollModal = ({ save, showEnrollModal, gymDetails, closeEnrollModal }) => {
+const EnrollForm = ({ save, showEnrollModal, gymDetails }) => {
     const [fullName, setFullName] = useState("")
     const [userName, setUserName] = useState("");
     const [emailAddress, setEmailAddress] = useState("")
@@ -73,14 +73,11 @@ const GymEnrollModal = ({ save, showEnrollModal, gymDetails, closeEnrollModal })
             </Button>
 
         </>
-
-
     );
-
 };
 
-GymEnrollModal.propTypes = {
+EnrollForm.propTypes = {
     save: PropTypes.func.isRequired,
 };
 
-export default GymEnrollModal;
+export default EnrollForm;

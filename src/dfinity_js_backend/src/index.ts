@@ -5,10 +5,12 @@ import { v4 as uuidv4 } from "uuid";
 
 
 
-const GymService = Record({
-    id: text,
+const GymServicePayload = Record({
+    gymId: text,
     serviceName: text,
-    serviceDescription: text
+    serviceDescription: text,
+    operatingDaysStart: text,
+    operatingDaysEnd: text
 });
 
 const MembershipPayload = Record({
@@ -28,7 +30,7 @@ const Gym = Record({
     gymDescription: text,
     emailAddress: text,
     members: Vec(MembershipPayload),
-    gymServices: Vec(GymService)
+    gymServices: Vec(GymServicePayload)
 });
 
 const GymPayload = Record({
@@ -153,6 +155,45 @@ export default Canister({
             }
         });
         return Ok(newMembers);
+    }),
+
+
+
+    addGymService: update([GymServicePayload], Result(Gym, Message), (payload) => {
+        if (!payload.serviceName || !payload.serviceDescription || !payload.operatingDaysStart || !payload.operatingDaysEnd) {
+            return Err({ InvalidPayload: "Missing required fields" });
+        }
+
+        const { gymId, serviceName, serviceDescription, operatingDaysStart, operatingDaysEnd } = payload;
+        const gymOpt = gymStorage.get(gymId);
+
+        if ("None" in gymOpt) {
+            return Err({ NotFound: `Gym with id=${gymId} not found` });
+        }
+
+        if (gymOpt.Some.owner.toText() !== ic.caller().toText()) {
+            return Err({ NotAuthorized: `you are not the owner of this gym with id=${gymId} ` });
+        }
+
+        gymOpt.Some.gymServices.push({ gymId, serviceName, serviceDescription, operatingDaysStart, operatingDaysEnd });
+        gymStorage.insert(gymId, gymOpt.Some);
+        return Ok(gymOpt.Some);
+    }),
+
+
+    getAllServicesById: query([text], Result(Vec(GymServicePayload), Message), (id) => {
+        const gymOpt = gymStorage.get(id);
+        if ("None" in gymOpt) {
+            return Err({ NotFound: `gym with id=${id} not found` });
+        }
+
+        let services: any[] = [];
+        gymOpt.Some.gymServices.forEach((service: { gymId: any }) => {
+            if (service.gymId === id) {
+                services.push(service);
+            }
+        });
+        return Ok(services);
     }),
 
 

@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Card, Button } from "react-bootstrap";
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import GymEnrollModal from "./GymEnrollModal";
+import EnrollForm from "./EnrollForm";
+import ServiceForm from "./ServiceForm";
 
 
-const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enroll, getMembers, gymMembers, deleteGym }) => {
+const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enroll,
+    getMembers, gymMembers, deleteGym, registerService, gymServices, getServicesById }) => {
     const [key, setKey] = useState('details');
 
 
@@ -14,6 +16,12 @@ const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enrol
             getMembers(gymDetails.Ok.id);
         }
     }, [gymDetails?.Ok?.id, getMembers]);
+
+    useEffect(() => {
+        if (gymDetails?.Ok?.id) {
+            getServicesById(gymDetails.Ok.id);
+        }
+    }, [gymDetails?.Ok?.id, getServicesById]);
 
 
     return (
@@ -71,7 +79,25 @@ const GymInfoModal = ({ closeGymDetailsModal, gymDetailsModal, gymDetails, enrol
 
                                         </Tab>
                                         <Tab eventKey="enroll" title="Enroll">
-                                            <GymEnrollModal save={enroll} gymDetails={gymDetails} />
+                                            <EnrollForm save={enroll} gymDetails={gymDetails} />
+                                        </Tab>
+
+                                        <Tab eventKey="services" title="Services">
+                                            <p className="text-capitalize ">Services offered </p>
+                                            <ol>
+                                                {gymServices.map((service) => (
+                                                    <li key={service.userId}>
+                                                        <Card.Text className="text-capitalize "><b>Service name:</b> {service.serviceName}</Card.Text>
+                                                        <Card.Text className="text-capitalize "><b>Service description:</b> {service.serviceDescription}</Card.Text>
+                                                        <Card.Text className="text-capitalize "><b>Opening day:</b> {service.operatingDaysStart}</Card.Text>
+                                                        <Card.Text className="text-capitalize mb-4"><b>Closing day:</b> {service.operatingDaysEnd}</Card.Text>
+                                                    </li>
+                                                ))}
+                                            </ol>
+
+                                            <hr />
+                                            <p className="text-capitalize ">Service form </p>
+                                            <ServiceForm registerService={registerService} gymDetails={gymDetails} />
                                         </Tab>
                                     </Tabs>
 

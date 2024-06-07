@@ -4,7 +4,7 @@ import { hashCode } from "hashcode";
 import { v4 as uuidv4 } from "uuid";
 
 
-
+// Define the structure of the GymService payload
 const GymServicePayload = Record({
     gymId: text,
     serviceName: text,
@@ -13,6 +13,7 @@ const GymServicePayload = Record({
     operatingDaysEnd: text
 });
 
+// Define the structure of the Membership payload
 const MembershipPayload = Record({
     fullName: text,
     userName: text,
@@ -21,6 +22,9 @@ const MembershipPayload = Record({
     gymId: text
 });
 
+
+
+// Define the structure of the Gym object
 const Gym = Record({
     id: text,
     owner: Principal,
@@ -33,6 +37,9 @@ const Gym = Record({
     gymServices: Vec(GymServicePayload)
 });
 
+
+
+// Define the structure of the Gym payload for creation/updating
 const GymPayload = Record({
     gymName: text,
     gymImgUrl: text,
@@ -43,6 +50,7 @@ const GymPayload = Record({
 
 
 
+// Define the possible message variants for errors and notifications
 const Message = Variant({
     NotFound: text,
     InvalidPayload: text,
@@ -63,11 +71,13 @@ const icpCanister = Ledger(Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai"));
 
 export default Canister({
 
+    // Query to get all gyms
     getAllGym: query([], Vec(Gym), () => {
         return gymStorage.values();
     }),
 
 
+    // Query to get a specific gym by ID
     getGymById: query([text], Result(Gym, Message), (id) => {
         const gym = gymStorage.get(id);
         if ("None" in gym) {
@@ -76,6 +86,8 @@ export default Canister({
         return Ok(gym.Some);
     }),
 
+
+    // Update method to create a new gym profile
     createGymProfile: update([GymPayload], Result(Gym, Message), (payload) => {
         if (!payload.gymName || !payload.gymImgUrl || !payload.gymLocation || !payload.gymDescription || !payload.emailAddress) {
             return Err({ InvalidPayload: "Missing required fields" });
@@ -88,6 +100,8 @@ export default Canister({
     }),
 
 
+
+    // Update method to update an existing gym by ID
     updateGymById: update([text, GymPayload], Result(Gym, Message), (id, payload) => {
         const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
@@ -114,6 +128,8 @@ export default Canister({
     }),
 
 
+
+    // Update method to register a new gym member
     gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
         if (!payload.fullName || !payload.userName || !payload.emailAddress) {
             return Err({ InvalidPayload: "Missing required fields" });
@@ -142,6 +158,7 @@ export default Canister({
 
 
 
+    // Query to get all members enrolled in a specific gym by ID
     getAllEnrollesByGymId: query([text], Result(Vec(MembershipPayload), Message), (id) => {
         const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
@@ -159,6 +176,7 @@ export default Canister({
 
 
 
+    // Update method to add a new service to a gym
     addGymService: update([GymServicePayload], Result(Gym, Message), (payload) => {
         if (!payload.serviceName || !payload.serviceDescription || !payload.operatingDaysStart || !payload.operatingDaysEnd) {
             return Err({ InvalidPayload: "Missing required fields" });
@@ -181,6 +199,8 @@ export default Canister({
     }),
 
 
+
+    // Query to get all services of a specific gym by ID
     getAllServicesById: query([text], Result(Vec(GymServicePayload), Message), (id) => {
         const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
@@ -197,6 +217,8 @@ export default Canister({
     }),
 
 
+
+    // Update method to delete a gym by ID
     deleteGymById: update([text], Result(text, Message), (id) => {
         const deletedGymOpt = gymStorage.remove(id);
         if ("None" in deletedGymOpt) {

@@ -323,7 +323,7 @@ export default Canister({
         InvalidPayload: `id=${id} is not in the valid format.`,
       });
     }
-    const deletedGymOpt = gymStorage.remove(id);
+    const deletedGymOpt = gymStorage.get(id);
     if ("None" in deletedGymOpt) {
       return Err({
         NotFound: `cannot delete the gym: gym with id=${id} not found`,
@@ -335,6 +335,7 @@ export default Canister({
         NotAuthorized: `you are not the owner of this gym with id=${id} `,
       });
     }
+    gymStorage.remove(id)
 
     return Ok(deletedGymOpt.Some.id);
   }),

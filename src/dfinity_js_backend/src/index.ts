@@ -79,6 +79,10 @@ export default Canister({
 
     // Query to get a specific gym by ID
     getGymById: query([text], Result(Gym, Message), (id) => {
+        if (!isValidUuid(id)) {
+            return Err({ InvalidPayload: `id=${id} is not in the valid format.` });
+        }
+
         const gym = gymStorage.get(id);
         if ("None" in gym) {
             return Err({ NotFound: `gym with id=${id} not found` });
@@ -89,8 +93,13 @@ export default Canister({
 
     // Update method to create a new gym profile
     createGymProfile: update([GymPayload], Result(Gym, Message), (payload) => {
-        if (!payload.gymName || !payload.gymImgUrl || !payload.gymLocation || !payload.gymDescription || !payload.emailAddress) {
-            return Err({ InvalidPayload: "Missing required fields" });
+        // Validate the payload
+        // @ts-ignore
+        const validatePayloadErrors = validateGymPayload(payload);
+        if (validatePayloadErrors.length) {
+            return Err({
+                InvalidPayload: `Invalid payload. Errors=[${validatePayloadErrors}]`,
+            });
         }
 
         const gym = { id: uuidv4(), owner: ic.caller(), members: [], gymServices: [], ...payload };
@@ -103,6 +112,18 @@ export default Canister({
 
     // Update method to update an existing gym by ID
     updateGymById: update([text, GymPayload], Result(Gym, Message), (id, payload) => {
+        if (!isValidUuid(id)) {
+            return Err({ InvalidPayload: `id=${id} is not in the valid format.` });
+        }
+        // Validate the payload
+        // @ts-ignore
+        const validatePayloadErrors = validateGymPayload(payload);
+        if (validatePayloadErrors.length) {
+            return Err({
+                InvalidPayload: `Invalid payload. Errors=[${validatePayloadErrors}]`,
+            });
+        }
+
         const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
             return Err({ NotFound: `cannot update gym: gym with id=${id} not found` });
@@ -131,8 +152,18 @@ export default Canister({
 
     // Update method to register a new gym member
     gymMembershipRegistration: update([MembershipPayload], Result(Gym, Message), (payload) => {
-        if (!payload.fullName || !payload.userName || !payload.emailAddress) {
-            return Err({ InvalidPayload: "Missing required fields" });
+        if (!isValidUuid(payload.gymId)) {
+            return Err({
+                InvalidPayload: `payload.gymId=${payload.gymId} is not in the valid format.`,
+            });
+        }
+        // Validate the payload
+        // @ts-ignore
+        const validatePayloadErrors = validateMembershipPayload(payload);
+        if (validatePayloadErrors.length) {
+            return Err({
+                InvalidPayload: `Invalid payload. Errors=[${validatePayloadErrors}]`,
+            });
         }
 
         const { gymId, fullName, userName, emailAddress } = payload;
@@ -160,7 +191,15 @@ export default Canister({
 
     // Query to get all members enrolled in a specific gym by ID
     getAllEnrollesByGymId: query([text], Result(Vec(MembershipPayload), Message), (id) => {
+
+        if (!isValidUuid(id)) {
+            return Err({
+                InvalidPayload: `id=${id} is not in the valid format.`,
+            });
+        }
+
         const gymOpt = gymStorage.get(id);
+
         if ("None" in gymOpt) {
             return Err({ NotFound: `gym with id=${id} not found` });
         }
@@ -178,8 +217,18 @@ export default Canister({
 
     // Update method to add a new service to a gym
     addGymService: update([GymServicePayload], Result(Gym, Message), (payload) => {
-        if (!payload.serviceName || !payload.serviceDescription || !payload.operatingDaysStart || !payload.operatingDaysEnd) {
-            return Err({ InvalidPayload: "Missing required fields" });
+        if (!isValidUuid(payload.gymId)) {
+            return Err({
+                InvalidPayload: `payload.gymId=${payload.gymId} is not in the valid format.`,
+            });
+        }
+        // Validate the payload
+        // @ts-ignore
+        const validatePayloadErrors = validateGymServicePayload(payload);
+        if (validatePayloadErrors.length) {
+            return Err({
+                InvalidPayload: `Invalid payload. Errors=[${validatePayloadErrors}]`,
+            });
         }
 
         const { gymId, serviceName, serviceDescription, operatingDaysStart, operatingDaysEnd } = payload;
@@ -202,6 +251,13 @@ export default Canister({
 
     // Query to get all services of a specific gym by ID
     getAllServicesById: query([text], Result(Vec(GymServicePayload), Message), (id) => {
+
+        if (!isValidUuid(id)) {
+            return Err({
+                InvalidPayload: `id=${id} is not in the valid format.`,
+            });
+        }
+
         const gymOpt = gymStorage.get(id);
         if ("None" in gymOpt) {
             return Err({ NotFound: `gym with id=${id} not found` });
@@ -220,6 +276,13 @@ export default Canister({
 
     // Update method to delete a gym by ID
     deleteGymById: update([text], Result(text, Message), (id) => {
+
+        if (!isValidUuid(id)) {
+            return Err({
+                InvalidPayload: `id=${id} is not in the valid format.`,
+            });
+        }
+
         const deletedGymOpt = gymStorage.remove(id);
         if ("None" in deletedGymOpt) {
             return Err({ NotFound: `cannot delete the gym: gym with id=${id} not found` });
@@ -320,3 +383,108 @@ async function verifyPaymentInternal(receiver: Principal, amount: nat64, block: 
     });
     return tx ? true : false;
 };
+
+
+// Helper function that trims the input string and then checks the length
+// The string is empty if true is returned, otherwise, string is a valid value
+function isInvalidString(str: text): boolean {
+    return str.trim().length == 0;
+}
+
+// Helper function to ensure the input id meets the format used for ids generated by uuid
+function isValidUuid(id: string): boolean {
+    const regexExp =
+        /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+    return regexExp.test(id);
+}
+
+/**
+ * Helper function to validate the GymServicePayload
+ */
+function validateGymServicePayload(
+    payload: typeof GymServicePayload
+): Vec<string> {
+    const errors: Vec<text> = [];
+
+    // @ts-ignore
+    if (isInvalidString(payload.serviceName)) {
+        errors.push(`serviceName='${payload.serviceName}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.serviceDescription)) {
+        errors.push(
+            `serviceDescription='${payload.serviceDescription}' cannot be empty.`
+        );
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.operatingDaysEnd)) {
+        errors.push(
+            `operatingDaysEnd='${payload.operatingDaysEnd}' cannot be empty.`
+        );
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.operatingDaysStart)) {
+        errors.push(
+            `operatingDaysStart='${payload.operatingDaysStart}' cannot be empty.`
+        );
+    }
+    return errors;
+}
+/**
+ * Helper function to validate the GymPayload
+ */
+function validateGymPayload(payload: typeof GymPayload): Vec<string> {
+    const errors: Vec<text> = [];
+
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+    // @ts-ignore
+    if (isInvalidString(payload.gymName)) {
+        errors.push(`gymName='${payload.gymName}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.gymDescription)) {
+        errors.push(`gymDescription='${payload.gymDescription}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.gymImgUrl)) {
+        errors.push(`gymImgUrl='${payload.gymImgUrl}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.gymLocation)) {
+        errors.push(`gymLocation='${payload.gymLocation}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (!emailRegex.test(payload.emailAddress)) {
+        errors.push(
+            `emailAddress='${payload.emailAddress}' is not in the valid format.`
+        );
+    }
+    return errors;
+}
+/**
+ * Helper function to validate the MembershipPayload
+ */
+function validateMembershipPayload(
+    payload: typeof MembershipPayload
+): Vec<string> {
+    const errors: Vec<text> = [];
+
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+    // @ts-ignore
+    if (isInvalidString(payload.fullName)) {
+        errors.push(`fullName='${payload.fullName}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (isInvalidString(payload.userName)) {
+        errors.push(`userName='${payload.userName}' cannot be empty.`);
+    }
+    // @ts-ignore
+    if (!emailRegex.test(payload.emailAddress)) {
+        errors.push(
+            `emailAddress='${payload.emailAddress}' is not in the valid format.`
+        );
+    }
+    return errors;
+}

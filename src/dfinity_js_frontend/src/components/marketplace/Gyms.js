@@ -25,7 +25,16 @@ const Gyms = () => {
 
 
   const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
+
+  const handleClose = () => {
+    setShow(false);
+    setGymName("");
+    setGymImgUrl("");
+    setGymLocation("");
+    setGymDescription("");
+    setEmailAddress("");
+    setText("register");
+  }
   const handleShow = () => setShow(true);
 
   const isFormFilled = () => gymName && gymImgUrl && gymLocation && gymDescription && emailAddress;
